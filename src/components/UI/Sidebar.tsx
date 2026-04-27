@@ -36,7 +36,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Mobile backdrop */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-[2000] bg-black/70 backdrop-blur-sm md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -45,7 +45,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       {/* Sidebar panel */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-50 h-screen w-64 bg-secondary-light border-r border-border',
+          'fixed left-0 top-0 z-[2100] h-screen w-64 bg-secondary-light border-r border-border',
           'transition-transform duration-300 ease-in-out',
           'md:z-40 md:translate-x-0',
           isOpen ? 'translate-x-0' : '-translate-x-full'

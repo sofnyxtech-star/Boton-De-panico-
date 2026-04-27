@@ -15,7 +15,7 @@ export function Header({ onMenuToggle }: HeaderProps) {
   const activeCount = alerts.filter(a => a.status === 'active').length
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-30 h-16 bg-secondary-light border-b border-border md:left-64">
+    <header className="fixed top-0 left-0 right-0 z-[1500] h-16 bg-secondary-light border-b border-border md:left-64">
       <div className="flex h-full items-center justify-between px-3 md:px-6">
         {/* Left: Hamburger + Title */}
         <div className="flex items-center gap-3">

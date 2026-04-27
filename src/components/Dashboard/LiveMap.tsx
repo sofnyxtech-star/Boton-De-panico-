@@ -158,7 +158,7 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
       </MapContainer>
 
       {/* Map Legend - solo desktop */}
-      <div className="hidden md:block absolute bottom-4 left-4 z-[1000] bg-background-card/90 backdrop-blur rounded-lg p-3 border border-border">
+      <div className="hidden md:block absolute bottom-4 left-4 z-[400] bg-background-card/90 backdrop-blur rounded-lg p-3 border border-border">
         <p className="text-xs font-semibold text-gray-400 mb-2">LEYENDA</p>
         <div className="space-y-1">
           {Object.entries(AGENT_STATUS_CONFIG).map(([status, config]) => (
@@ -171,7 +171,7 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
       </div>
 
       {/* Agent Count */}
-      <div className="absolute top-4 right-4 z-[1000] bg-background-card/90 backdrop-blur rounded-lg px-3 py-2 border border-border">
+      <div className="absolute top-4 right-4 z-[400] bg-background-card/90 backdrop-blur rounded-lg px-3 py-2 border border-border">
         <p className="text-sm text-white">
           <span className="font-bold text-primary">{agentsWithLocation.length}</span>
           <span className="text-gray-400"> agentes en mapa</span>
