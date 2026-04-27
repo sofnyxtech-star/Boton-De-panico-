@@ -72,31 +72,34 @@ function AlertCard({ alert, onAcknowledge, onRespond, onResolve, onSelect, isSel
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
         {alert.status === 'active' && (
           <button
             onClick={onAcknowledge}
-            className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-yellow-600 px-3 py-2 text-sm font-medium text-white hover:bg-yellow-700 transition-colors"
+            title="Reconocer alerta"
+            className="flex-1 min-w-0 flex items-center justify-center gap-1 rounded-lg bg-yellow-600 px-2 py-2 text-xs font-medium text-white hover:bg-yellow-700 transition-colors"
           >
-            <CheckCircle className="h-4 w-4" />
-            Reconocer
+            <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Reconocer</span>
           </button>
         )}
         {(alert.status === 'active' || alert.status === 'acknowledged') && (
           <button
             onClick={onRespond}
-            className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+            title="Marcar en respuesta"
+            className="flex-1 min-w-0 flex items-center justify-center gap-1 rounded-lg bg-blue-600 px-2 py-2 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
           >
-            <Truck className="h-4 w-4" />
-            Responder
+            <Truck className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">Responder</span>
           </button>
         )}
         <button
           onClick={onResolve}
-          className="flex-1 flex items-center justify-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-sm font-medium text-white hover:bg-green-700 transition-colors"
+          title="Resolver alerta"
+          className="flex-1 min-w-0 flex items-center justify-center gap-1 rounded-lg bg-green-600 px-2 py-2 text-xs font-medium text-white hover:bg-green-700 transition-colors"
         >
-          <CheckCircle className="h-4 w-4" />
-          Resolver
+          <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">Resolver</span>
         </button>
       </div>
     </div>

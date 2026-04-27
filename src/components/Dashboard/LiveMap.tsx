@@ -157,8 +157,8 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
 
       </MapContainer>
 
-      {/* Map Legend */}
-      <div className="absolute bottom-4 left-4 z-[1000] bg-background-card/90 backdrop-blur rounded-lg p-3 border border-border">
+      {/* Map Legend - solo desktop */}
+      <div className="hidden md:block absolute bottom-4 left-4 z-[1000] bg-background-card/90 backdrop-blur rounded-lg p-3 border border-border">
         <p className="text-xs font-semibold text-gray-400 mb-2">LEYENDA</p>
         <div className="space-y-1">
           {Object.entries(AGENT_STATUS_CONFIG).map(([status, config]) => (
