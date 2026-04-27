@@ -9,31 +9,34 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.5.2",
+    "@supabase/supabase-js": "^2.49.0",
+    "@tanstack/react-query": "^5.62.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.468.0",
     "next": "^15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "@supabase/supabase-js": "^2.49.0",
-    "@supabase/ssr": "^0.5.2",
-    "leaflet": "^1.9.4",
     "react-leaflet": "^5.0.0",
-    "@tanstack/react-query": "^5.62.0",
-    "zustand": "^5.0.2",
     "recharts": "^2.14.0",
-    "date-fns": "^4.1.0",
-    "lucide-react": "^0.468.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.6.0"
+    "tailwind-merge": "^2.6.0",
+    "web-push": "^3.6.7",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
-    "typescript": "^5.7.0",
+    "@types/leaflet": "^1.9.14",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "@types/leaflet": "^1.9.14",
-    "tailwindcss": "^3.4.16",
-    "postcss": "^8.4.49",
+    "@types/web-push": "^3.6.4",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.17.0",
-    "eslint-config-next": "^15.1.0"
+    "eslint-config-next": "^15.1.0",
+    "postcss": "^8.4.49",
+    "sharp": "^0.34.5",
+    "tailwindcss": "^3.4.16",
+    "typescript": "^5.7.0"
   }
 }

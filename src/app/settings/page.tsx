@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { DashboardLayout } from '@/components/UI/DashboardLayout'
 import { useAuth } from '@/hooks/useAuth'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { supabase } from '@/lib/supabase'
 import { cn, formatDateTime } from '@/lib/utils'
 import type { Operator } from '@/types'
@@ -25,6 +26,7 @@ type ConnectionStatus = 'checking' | 'connected' | 'error'
 export default function SettingsPage() {
   const router = useRouter()
   const { isAuthenticated, isAdmin, loading, operator } = useAuth()
+  const push = usePushNotifications()
   const [operators, setOperators] = useState<Operator[]>([])
   const [loadingOperators, setLoadingOperators] = useState(true)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('checking')
@@ -207,16 +209,58 @@ export default function SettingsPage() {
               </p>
             </div>
 
-            {/* Notification Info */}
+            {/* Push Notifications - PWA */}
             <div className="p-3 bg-background rounded-lg border border-border md:p-4">
-              <div className="flex items-center gap-2 mb-2 md:gap-3">
-                <Bell className="h-5 w-5 text-blue-400 shrink-0" />
-                <span className="text-white font-medium text-sm">Notificaciones del navegador</span>
+              <div className="flex items-center justify-between gap-2 mb-2 md:gap-3">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <Bell className="h-5 w-5 text-blue-400 shrink-0" />
+                  <span className="text-white font-medium text-sm">Notificaciones Push</span>
+                </div>
+                {push.status === 'subscribed' && (
+                  <span className="flex items-center gap-1 text-green-400 text-xs">
+                    <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                    Activas
+                  </span>
+                )}
               </div>
-              <p className="text-gray-400 text-xs md:text-sm">
-                Las notificaciones push del navegador se solicitan automaticamente al iniciar sesion.
-                Asegurese de permitirlas para recibir alertas incluso cuando la ventana no esta en foco.
+              <p className="text-gray-400 text-xs md:text-sm mb-3">
+                Recibe alertas en este dispositivo aunque la ventana este cerrada.
+                Instala el dashboard como aplicacion para mejor experiencia.
               </p>
+
+              {push.status === 'unsupported' && (
+                <p className="text-yellow-400 text-xs">
+                  Tu navegador no soporta notificaciones push.
+                </p>
+              )}
+
+              {push.status === 'denied' && (
+                <p className="text-red-400 text-xs">
+                  Permisos denegados. Habilitalas desde la configuracion del navegador.
+                </p>
+              )}
+
+              {push.error && (
+                <p className="text-red-400 text-xs mb-2">{push.error}</p>
+              )}
+
+              {push.isSupported && push.status !== 'denied' && (
+                push.isSubscribed ? (
+                  <button
+                    onClick={push.unsubscribe}
+                    className="w-full rounded-lg px-3 py-2 text-sm font-medium bg-red-600/20 text-red-400 hover:bg-red-600/30 transition-colors"
+                  >
+                    Desactivar notificaciones
+                  </button>
+                ) : (
+                  <button
+                    onClick={push.subscribe}
+                    className="w-full rounded-lg px-3 py-2 text-sm font-medium bg-primary hover:bg-primary-600 text-white transition-colors"
+                  >
+                    Activar notificaciones push
+                  </button>
+                )
+              )}
             </div>
 
             {/* Realtime Info */}

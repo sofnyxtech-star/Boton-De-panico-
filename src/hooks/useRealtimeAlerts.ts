@@ -56,6 +56,19 @@ export function useRealtimeAlerts() {
               setNewAlert(newAlertData)
               setAlerts(prev => [newAlertData, ...prev.filter(a => a.alert_id !== newAlertData.alert_id)])
               playAlertSound()
+
+              // Enviar push notification a todos los operadores suscritos
+              fetch('/api/push/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  title: 'ALERTA DE PANICO',
+                  body: `${newAlertData.agent_code} - ${newAlertData.agent_name}`,
+                  url: '/',
+                  alertId: newAlertData.alert_id,
+                  tag: 'alert-' + newAlertData.alert_id,
+                }),
+              }).catch((err) => console.error('Push send error:', err))
             }
           }
         }
