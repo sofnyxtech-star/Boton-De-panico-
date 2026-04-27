@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
-import { playAlertSound } from '@/lib/utils'
+import { playAlertSound, withRetry } from '@/lib/utils'
 import type { Alert, ActiveAlert } from '@/types'
 
 export function useRealtimeAlerts() {
@@ -14,11 +14,14 @@ export function useRealtimeAlerts() {
   // Cargar alertas activas iniciales
   const fetchAlerts = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_active_alerts')
+      const { data, error } = await withRetry(
+        async () => supabase.rpc('get_active_alerts'),
+      )
 
       if (error) throw error
 
       setAlerts(data || [])
+      setError(null)
       setLoading(false)
     } catch (err) {
       console.error('Error fetching alerts:', err)

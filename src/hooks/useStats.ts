@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { withRetry } from '@/lib/utils'
 import type { DashboardStats } from '@/types'
 
 const DEFAULT_STATS: DashboardStats = {
@@ -33,11 +34,14 @@ export function useStats() {
 
   const fetchStats = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_dashboard_stats')
+      const { data, error } = await withRetry(
+        async () => supabase.rpc('get_dashboard_stats'),
+      )
 
       if (error) throw error
 
       setStats(data || DEFAULT_STATS)
+      setError(null)
       setLoading(false)
     } catch (err) {
       console.error('Error fetching stats:', err)

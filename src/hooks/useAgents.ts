@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
+import { withRetry } from '@/lib/utils'
 import type { AgentWithLocation, Agent } from '@/types'
 
 export function useAgents() {
@@ -12,11 +13,14 @@ export function useAgents() {
   // Cargar agentes con ubicación
   const fetchAgents = useCallback(async () => {
     try {
-      const { data, error } = await supabase.rpc('get_agents_with_location')
+      const { data, error } = await withRetry(
+        async () => supabase.rpc('get_agents_with_location'),
+      )
 
       if (error) throw error
 
       setAgents(data || [])
+      setError(null)
       setLoading(false)
     } catch (err) {
       console.error('Error fetching agents:', err)

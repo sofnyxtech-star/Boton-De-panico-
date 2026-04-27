@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: 'Águilas del Sol ADS - Central de Monitoreo',
   description: 'Sistema de Botón de Pánico - Central de Monitoreo 24/7',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
   },
 }
 

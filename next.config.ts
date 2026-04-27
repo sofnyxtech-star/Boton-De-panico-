@@ -1,9 +1,8 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
-  // Desactivar StrictMode para evitar doble renderizado del mapa
-  reactStrictMode: false,
-  // Habilitar imágenes de Supabase Storage
+  reactStrictMode: true,
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       {
@@ -13,12 +12,22 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Configuración experimental
   experimental: {
-    // Habilitar Server Actions
     serverActions: {
       bodySizeLimit: '2mb',
     },
+  },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+    ]
   },
 }
 

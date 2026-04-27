@@ -1,20 +1,17 @@
 'use client'
 
-import { useEffect, useRef, useState, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { useEffect, useState } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { useAgents } from '@/hooks/useAgents'
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts'
 import { AGENT_STATUS_CONFIG } from '@/types'
 import { formatRelativeTime, formatBattery } from '@/lib/utils'
-import type { AgentWithLocation, ActiveAlert } from '@/types'
 import 'leaflet/dist/leaflet.css'
 
-// Unique key to prevent map re-initialization
-const MAP_KEY = 'live-map-instance'
-
-// Fix for default marker icons
-delete (L.Icon.Default.prototype as any)._getIconUrl
+// Fix for default marker icons (idempotente — seguro con StrictMode)
+type LeafletIconDefault = L.Icon.Default & { _getIconUrl?: unknown }
+delete (L.Icon.Default.prototype as LeafletIconDefault)._getIconUrl
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
   iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
@@ -99,7 +96,6 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
   return (
     <div className="h-full w-full rounded-xl overflow-hidden border border-border">
       <MapContainer
-        key={MAP_KEY}
         center={center}
         zoom={12}
         className="h-full w-full"
@@ -159,11 +155,6 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
           )
         })}
 
-        {/* Alert Location Trails */}
-        {alerts.map((alert) => {
-          // Here you could add polylines for alert tracking
-          return null
-        })}
       </MapContainer>
 
       {/* Map Legend */}

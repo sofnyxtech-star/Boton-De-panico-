@@ -113,3 +113,23 @@ export function truncate(text: string, length: number): string {
   if (text.length <= length) return text
   return text.slice(0, length) + '...'
 }
+
+// Wrapper con retry exponencial para llamadas a Supabase
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  baseDelay = 500,
+): Promise<T> {
+  let lastError: unknown
+  for (let i = 0; i <= retries; i++) {
+    try {
+      return await fn()
+    } catch (error) {
+      lastError = error
+      if (i === retries) break
+      const delay = baseDelay * Math.pow(2, i)
+      await new Promise((r) => setTimeout(r, delay))
+    }
+  }
+  throw lastError
+}
