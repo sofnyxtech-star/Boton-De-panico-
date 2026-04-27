@@ -39,3 +39,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts.bak
 tsconfig.tsbuildinfo
+image.png
+image*.png
