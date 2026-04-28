@@ -29,7 +29,7 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
-  const { operator, signOut, isAdmin } = useAuth()
+  const { operator, signOut } = useAuth()
 
   return (
     <>
@@ -92,22 +92,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             )
           })}
 
-          {/* Admin Settings */}
-          {isAdmin && (
-            <Link
-              href="/settings"
-              onClick={onClose}
-              className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
-                pathname === '/settings'
-                  ? 'bg-primary/20 text-primary'
-                  : 'text-gray-400 hover:bg-background-hover hover:text-white'
-              )}
-            >
-              <Settings className="h-5 w-5" />
-              Configuracion
-            </Link>
-          )}
+          {/* Configuracion (todos los operadores: para activar notificaciones push) */}
+          <Link
+            href="/settings"
+            onClick={onClose}
+            className={cn(
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+              pathname === '/settings'
+                ? 'bg-primary/20 text-primary'
+                : 'text-gray-400 hover:bg-background-hover hover:text-white'
+            )}
+          >
+            <Settings className="h-5 w-5" />
+            Configuracion
+          </Link>
         </nav>
 
         {/* User Info */}

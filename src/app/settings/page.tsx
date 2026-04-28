@@ -36,15 +36,16 @@ export default function SettingsPage() {
     if (!loading && !isAuthenticated) {
       router.push('/login')
     }
-    if (!loading && isAuthenticated && !isAdmin) {
-      router.push('/')
-    }
-  }, [loading, isAuthenticated, isAdmin, router])
+  }, [loading, isAuthenticated, router])
 
   useEffect(() => {
-    if (isAuthenticated && isAdmin) {
+    if (isAuthenticated) {
       checkConnection()
-      fetchOperators()
+      if (isAdmin) {
+        fetchOperators()
+      } else {
+        setLoadingOperators(false)
+      }
     }
   }, [isAuthenticated, isAdmin])
 
@@ -77,7 +78,7 @@ export default function SettingsPage() {
     }
   }
 
-  if (loading || !isAuthenticated || !isAdmin) {
+  if (loading || !isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="spinner h-16 w-16"></div>
@@ -277,7 +278,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Operators List */}
+        {/* Operators List (solo para admins) */}
+        {isAdmin && (
         <div className="lg:col-span-2 bg-background-card rounded-xl border border-border p-4 md:p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -392,6 +394,7 @@ export default function SettingsPage() {
             </>
           )}
         </div>
+        )}
       </div>
     </DashboardLayout>
   )
