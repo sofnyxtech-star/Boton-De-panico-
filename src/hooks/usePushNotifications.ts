@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useAuth } from './useAuth'
+import { supabase } from '@/lib/supabase'
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ''
 
@@ -103,19 +104,25 @@ export function usePushNotifications() {
         return false
       }
 
-      const res = await fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          subscription: sub.toJSON(),
-          operatorId: operator.id,
-          userAgent: navigator.userAgent,
-        }),
-      })
+      // Insert directo desde el cliente (con sesion autenticada)
+      const subJson = sub.toJSON()
+      const { error: dbError } = await supabase
+        .from('push_subscriptions')
+        .upsert(
+          {
+            operator_id: operator.id,
+            endpoint: subJson.endpoint!,
+            p256dh: subJson.keys!.p256dh,
+            auth: subJson.keys!.auth,
+            user_agent: navigator.userAgent,
+            last_used_at: new Date().toISOString(),
+          },
+          { onConflict: 'endpoint' },
+        )
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || 'Error al guardar suscripcion en el servidor')
+      if (dbError) {
+        console.error('[Push] DB insert error:', dbError)
+        throw new Error(dbError.message)
       }
 
       setSubscription(sub)
@@ -136,11 +143,7 @@ export function usePushNotifications() {
     try {
       const endpoint = subscription.endpoint
       await subscription.unsubscribe()
-      await fetch('/api/push/subscribe', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ endpoint }),
-      })
+      await supabase.from('push_subscriptions').delete().eq('endpoint', endpoint)
       setSubscription(null)
       setStatus('granted')
       return true
