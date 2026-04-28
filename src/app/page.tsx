@@ -49,10 +49,26 @@ function DashboardContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, loading } = useAuth()
-  const { newAlert, clearNewAlert } = useRealtimeAlerts()
+  const { alerts, newAlert, clearNewAlert } = useRealtimeAlerts()
   const [selectedAlertId, setSelectedAlertId] = useState<string | null>(
     searchParams.get('alertId'),
   )
+
+  // Si la alerta del banner ya no esta en las activas (fue resuelta), cerrar banner automaticamente
+  useEffect(() => {
+    if (newAlert) {
+      const stillActive = alerts.find((a) => a.alert_id === newAlert.alert_id)
+      if (!stillActive) clearNewAlert()
+    }
+  }, [alerts, newAlert, clearNewAlert])
+
+  // Auto-cerrar el banner despues de 60 segundos
+  useEffect(() => {
+    if (newAlert) {
+      const timeout = setTimeout(clearNewAlert, 60000)
+      return () => clearTimeout(timeout)
+    }
+  }, [newAlert, clearNewAlert])
 
   // Auto-seleccionar alerta si llega via push (URL con ?alertId=...)
   useEffect(() => {
@@ -132,12 +148,12 @@ function DashboardContent() {
       {/* New Alert Notification Banner */}
       {newAlert && (
         <div className="fixed bottom-4 right-4 left-4 z-50 md:left-auto md:max-w-md animate-slide-in">
-          <div className="bg-danger rounded-lg p-4 shadow-2xl border border-danger-light">
-            <div className="flex items-start gap-3">
-              <span className="text-3xl animate-pulse">!</span>
+          <div className="bg-danger rounded-lg p-4 shadow-2xl border-2 border-danger-light animate-pulse-emergency">
+            <div className="flex items-start gap-3 mb-3">
+              <span className="text-3xl">🆘</span>
               <div className="flex-1">
                 <h4 className="font-bold text-white">NUEVA ALERTA DE PANICO</h4>
-                <p className="text-red-100">
+                <p className="text-red-100 font-medium">
                   {newAlert.agent_code} - {newAlert.agent_name}
                 </p>
                 <p className="text-sm text-red-200 mt-1">
@@ -146,9 +162,27 @@ function DashboardContent() {
               </div>
               <button
                 onClick={clearNewAlert}
-                className="text-red-200 hover:text-white"
+                title="Cerrar notificacion"
+                className="text-red-200 hover:text-white text-xl leading-none"
               >
-                X
+                ×
+              </button>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setSelectedAlertId(newAlert.alert_id)
+                  clearNewAlert()
+                }}
+                className="flex-1 rounded-lg bg-white text-danger px-3 py-2 text-sm font-bold hover:bg-red-50 transition-colors"
+              >
+                ATENDER ALERTA
+              </button>
+              <button
+                onClick={clearNewAlert}
+                className="rounded-lg bg-red-700 hover:bg-red-800 px-3 py-2 text-sm font-medium text-white transition-colors"
+              >
+                Detener aviso
               </button>
             </div>
           </div>
