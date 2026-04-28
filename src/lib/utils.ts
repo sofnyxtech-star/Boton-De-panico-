@@ -61,10 +61,46 @@ export function getBatteryColor(level: number | null): string {
   return 'text-red-400'
 }
 
+// AudioContext compartido (creado una sola vez con interaccion del usuario)
+let sharedAudioContext: AudioContext | null = null
+
+function getAudioContext(): AudioContext | null {
+  if (typeof window === 'undefined') return null
+  if (!sharedAudioContext) {
+    try {
+      const Ctor = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext
+      sharedAudioContext = new Ctor()
+    } catch {
+      return null
+    }
+  }
+  return sharedAudioContext
+}
+
+// Pre-inicializar el AudioContext en la primera interaccion del usuario
+if (typeof window !== 'undefined') {
+  const unlock = () => {
+    const ctx = getAudioContext()
+    if (ctx && ctx.state === 'suspended') {
+      ctx.resume().catch(() => {})
+    }
+  }
+  ['click', 'touchstart', 'keydown'].forEach((evt) =>
+    window.addEventListener(evt, unlock, { once: false, capture: true }),
+  )
+}
+
 // Reproducir sonido de alerta usando Web Audio API (3 beeps)
 export function playAlertSound() {
   try {
-    const ctx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    const ctx = getAudioContext()
+    if (!ctx) return
+
+    // Si esta suspendido (autoplay policy), intentar reanudar
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {})
+    }
+
     const BEEP_DURATION = 0.15
     const BEEP_PAUSE = 0.1
     const BEEP_FREQUENCY = 880
@@ -90,9 +126,6 @@ export function playAlertSound() {
       oscillator.start(startTime)
       oscillator.stop(startTime + BEEP_DURATION)
     }
-
-    const totalDuration = BEEP_COUNT * (BEEP_DURATION + BEEP_PAUSE)
-    setTimeout(() => { ctx.close().catch(() => { /* already closed */ }) }, totalDuration * 1000 + 100)
   } catch (err) {
     console.error('Error playing alert sound:', err)
   }

@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { playAlertSound, withRetry } from '@/lib/utils'
-import type { Alert, ActiveAlert } from '@/types'
+import type { ActiveAlert } from '@/types'
+
+const POLLING_INTERVAL_MS = 5000 // backup cada 5 segundos
 
 export function useRealtimeAlerts() {
   const [alerts, setAlerts] = useState<ActiveAlert[]>([])
@@ -11,85 +13,111 @@ export function useRealtimeAlerts() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Cargar alertas activas iniciales
-  const fetchAlerts = useCallback(async () => {
+  // Set de IDs ya conocidos para detectar alertas nuevas vía polling
+  const knownAlertIdsRef = useRef<Set<string>>(new Set())
+  const isFirstLoadRef = useRef(true)
+
+  // Cargar alertas activas y detectar nuevas
+  const fetchAlerts = useCallback(async (silent = false) => {
     try {
       const { data, error } = await withRetry(
         async () => supabase.rpc('get_active_alerts'),
       )
-
       if (error) throw error
 
-      setAlerts(data || [])
+      const newAlerts: ActiveAlert[] = data || []
+      const knownIds = knownAlertIdsRef.current
+
+      // En la primera carga, solo registrar IDs sin disparar notificación
+      if (isFirstLoadRef.current) {
+        newAlerts.forEach((a) => knownIds.add(a.alert_id))
+        isFirstLoadRef.current = false
+      } else {
+        // Detectar alertas que NO conocíamos => son nuevas
+        const reallyNew = newAlerts.find(
+          (a) => !knownIds.has(a.alert_id) && a.status === 'active',
+        )
+        if (reallyNew) {
+          setNewAlert(reallyNew)
+          playAlertSound()
+        }
+        // Actualizar set
+        newAlerts.forEach((a) => knownIds.add(a.alert_id))
+        // Eliminar IDs que ya no están activos
+        const currentIds = new Set(newAlerts.map((a) => a.alert_id))
+        knownIds.forEach((id) => {
+          if (!currentIds.has(id)) knownIds.delete(id)
+        })
+      }
+
+      setAlerts(newAlerts)
       setError(null)
-      setLoading(false)
+      if (!silent) setLoading(false)
     } catch (err) {
-      console.error('Error fetching alerts:', err)
-      setError('Error al cargar alertas')
-      setLoading(false)
+      console.error('[Alerts] fetch error:', err)
+      if (!silent) {
+        setError('Error al cargar alertas')
+        setLoading(false)
+      }
     }
   }, [])
 
   useEffect(() => {
     fetchAlerts()
 
-    // Suscribirse a nuevas alertas
-    const channel = supabase
-      .channel('alerts-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'alerts',
-        },
-        async (payload) => {
-          console.log('Nueva alerta recibida:', payload.new)
+    // 1. Realtime subscription (primaria)
+    let channel = subscribeToAlerts()
 
-          // Obtener datos completos de la alerta
-          const { data } = await supabase.rpc('get_active_alerts')
-          if (data) {
-            const newAlertData = data.find(
-              (a: ActiveAlert) => a.alert_id === payload.new.id
-            )
-            if (newAlertData) {
-              setNewAlert(newAlertData)
-              setAlerts(prev => [newAlertData, ...prev.filter(a => a.alert_id !== newAlertData.alert_id)])
-              playAlertSound()
-              // Push notification se envia automaticamente desde el webhook
-              // de Supabase, no necesitamos enviarlo desde el cliente
-            }
+    function subscribeToAlerts() {
+      return supabase
+        .channel('alerts-realtime-' + Date.now())
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'alerts' },
+          async () => {
+            await fetchAlerts(true)
+          },
+        )
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'alerts' },
+          async () => {
+            await fetchAlerts(true)
+          },
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+            // Reconectar despues de 2 segundos
+            setTimeout(() => {
+              try { supabase.removeChannel(channel) } catch {}
+              channel = subscribeToAlerts()
+            }, 2000)
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'alerts',
-        },
-        async (payload) => {
-          console.log('Alerta actualizada:', payload.new)
+        })
+    }
 
-          const updated = payload.new as Alert
+    // 2. Polling de respaldo cada 5 seg (esencial en desktop cuando WS falla)
+    const pollingInterval = setInterval(() => {
+      fetchAlerts(true)
+    }, POLLING_INTERVAL_MS)
 
-          // Si la alerta fue resuelta o es falsa alarma, quitarla de la lista
-          if (updated.status === 'resolved' || updated.status === 'false_alarm') {
-            setAlerts(prev => prev.filter(a => a.alert_id !== (payload.new as { id: string }).id))
-          } else {
-            // Actualizar la alerta en la lista
-            const { data } = await supabase.rpc('get_active_alerts')
-            if (data) {
-              setAlerts(data)
-            }
-          }
-        }
-      )
-      .subscribe()
+    // 3. Refrescar inmediatamente cuando la pestaña vuelve a foco
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAlerts(true)
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+
+    // 4. Refrescar cuando vuelve la red
+    const handleOnline = () => fetchAlerts(true)
+    window.addEventListener('online', handleOnline)
 
     return () => {
-      supabase.removeChannel(channel)
+      try { supabase.removeChannel(channel) } catch {}
+      clearInterval(pollingInterval)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      window.removeEventListener('online', handleOnline)
     }
   }, [fetchAlerts])
 
