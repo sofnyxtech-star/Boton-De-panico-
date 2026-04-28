@@ -9,7 +9,34 @@ export function PWARegister() {
 
     const register = async () => {
       try {
-        await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' })
+
+        // Forzar update check al cargar
+        await reg.update()
+
+        // Si hay un SW nuevo en waiting, activarlo y recargar
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+        }
+
+        // Detectar nuevo SW e instalarlo automaticamente
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing
+          if (!newWorker) return
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              newWorker.postMessage({ type: 'SKIP_WAITING' })
+            }
+          })
+        })
+
+        // Cuando el SW activo cambia, recargar la pagina UNA vez
+        let refreshing = false
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return
+          refreshing = true
+          window.location.reload()
+        })
       } catch (err) {
         console.error('SW registration failed:', err)
       }

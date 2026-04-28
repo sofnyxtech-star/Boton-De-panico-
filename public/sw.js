@@ -1,5 +1,5 @@
 // Service Worker — Aguilas del Sol Central de Monitoreo
-const CACHE_NAME = 'ads-central-v1';
+const CACHE_NAME = 'ads-central-v3';
 const ASSETS_TO_CACHE = [
   '/',
   '/login',
@@ -14,6 +14,13 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE))
   );
+});
+
+// Mensaje desde el cliente para activar nuevo SW inmediatamente
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate
