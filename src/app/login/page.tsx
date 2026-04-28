@@ -132,7 +132,7 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-xs text-gray-600">
           Sistema de Seguridad Empresarial - Águilas del Sol ADS
           <br />
-          © 2024 Todos los derechos reservados
+          © {new Date().getFullYear()} Derechos reservados a GACZ
         </p>
       </div>
     </div>
