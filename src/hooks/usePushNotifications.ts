@@ -70,10 +70,38 @@ export function usePushNotifications() {
       }
 
       const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      })
+
+      // Limpiar suscripcion previa si existe
+      const existingSub = await reg.pushManager.getSubscription()
+      if (existingSub) {
+        await existingSub.unsubscribe()
+      }
+
+      let sub: PushSubscription
+      try {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        })
+      } catch (subErr) {
+        const errMsg = subErr instanceof Error ? subErr.message : String(subErr)
+        const errName = subErr instanceof Error ? subErr.name : 'Error'
+        console.error('[Push] subscribe error:', errName, errMsg, subErr)
+
+        let userMessage = errMsg
+        if (errName === 'NotAllowedError') {
+          userMessage = 'El navegador bloqueo las notificaciones. Habilitalas en configuracion del sitio.'
+        } else if (errName === 'AbortError') {
+          userMessage = 'El servicio push fallo. En iOS necesitas instalar la app primero (Compartir > Agregar a inicio).'
+        } else if (errName === 'InvalidStateError') {
+          userMessage = 'El service worker no esta listo. Recarga la pagina e intenta de nuevo.'
+        } else if (errMsg.includes('push service')) {
+          userMessage = 'Tu navegador o dispositivo no soporta Web Push. Prueba en Chrome/Edge desktop o Android.'
+        }
+        setError(userMessage)
+        setStatus('error')
+        return false
+      }
 
       const res = await fetch('/api/push/subscribe', {
         method: 'POST',
@@ -87,7 +115,7 @@ export function usePushNotifications() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || 'Error al registrar suscripcion')
+        throw new Error(data.error || 'Error al guardar suscripcion en el servidor')
       }
 
       setSubscription(sub)
@@ -96,6 +124,7 @@ export function usePushNotifications() {
       return true
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Error desconocido'
+      console.error('[Push] subscribe outer error:', err)
       setError(msg)
       setStatus('error')
       return false
