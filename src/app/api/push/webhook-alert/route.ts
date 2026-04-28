@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
     const notificationPayload = JSON.stringify({
       title: `ALERTA DE ${alertTypeLabels[payload.record.alert_type] || 'EMERGENCIA'}`,
       body: `${agentCode} - ${agentName}\n${zone}`,
-      url: '/',
+      url: '/?alertId=' + payload.record.id,
       tag: 'alert-' + payload.record.id,
       alertId: payload.record.id,
     })

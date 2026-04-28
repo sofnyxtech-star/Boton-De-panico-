@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { DashboardLayout } from '@/components/UI/DashboardLayout'
 import { StatsBar } from '@/components/Dashboard/StatsBar'
 import { AlertPanel } from '@/components/Dashboard/AlertPanel'
@@ -38,10 +38,29 @@ function LoadingScreen() {
 }
 
 export default function DashboardPage() {
+  return (
+    <Suspense fallback={<LoadingScreen />}>
+      <DashboardContent />
+    </Suspense>
+  )
+}
+
+function DashboardContent() {
   const router = useRouter()
-  const { isAuthenticated, loading, operator } = useAuth()
+  const searchParams = useSearchParams()
+  const { isAuthenticated, loading } = useAuth()
   const { newAlert, clearNewAlert } = useRealtimeAlerts()
-  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(null)
+  const [selectedAlertId, setSelectedAlertId] = useState<string | null>(
+    searchParams.get('alertId'),
+  )
+
+  // Auto-seleccionar alerta si llega via push (URL con ?alertId=...)
+  useEffect(() => {
+    const alertIdFromUrl = searchParams.get('alertId')
+    if (alertIdFromUrl) {
+      setSelectedAlertId(alertIdFromUrl)
+    }
+  }, [searchParams])
 
   // Redirect to login if not authenticated
   useEffect(() => {

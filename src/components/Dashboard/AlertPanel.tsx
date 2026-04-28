@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { AlertTriangle, Clock, MapPin, Phone, User, CheckCircle, Truck, X } from 'lucide-react'
+import { AlertTriangle, Clock, MapPin, Phone, CheckCircle, Truck, X, Navigation } from 'lucide-react'
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts'
 import { useAuth } from '@/hooks/useAuth'
 import { formatRelativeTime, cn } from '@/lib/utils'
@@ -52,7 +52,7 @@ function AlertCard({ alert, onAcknowledge, onRespond, onResolve, onSelect, isSel
       </div>
 
       {/* Info */}
-      <div className="space-y-2 mb-4">
+      <div className="space-y-2 mb-3">
         <div className="flex items-center gap-2 text-sm text-gray-300">
           <Clock className="h-4 w-4 text-gray-500" />
           {formatRelativeTime(alert.created_at)}
@@ -70,6 +70,15 @@ function AlertCard({ alert, onAcknowledge, onRespond, onResolve, onSelect, isSel
           </div>
         )}
       </div>
+
+      {/* Ver en mapa */}
+      <button
+        onClick={(e) => { e.stopPropagation(); onSelect() }}
+        className="w-full mb-2 flex items-center justify-center gap-1.5 rounded-lg bg-primary/20 hover:bg-primary/30 border border-primary/40 px-3 py-2 text-xs font-medium text-primary transition-colors"
+      >
+        <Navigation className="h-3.5 w-3.5" />
+        Ver ubicacion en el mapa
+      </button>
 
       {/* Actions */}
       <div className="flex flex-wrap gap-1.5" onClick={(e) => e.stopPropagation()}>
