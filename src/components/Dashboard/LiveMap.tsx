@@ -133,31 +133,44 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
               <TileLayer
                 attribution='Tiles &copy; Esri'
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
+                maxNativeZoom={18}
+                maxZoom={20}
               />
               <TileLayer
                 attribution='Boundaries &copy; Esri'
                 url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={19}
+                maxNativeZoom={18}
+                maxZoom={20}
               />
             </>
           </LayersControl.BaseLayer>
 
-          {/* Solo satelital (vista pura del terreno) */}
-          <LayersControl.BaseLayer name="Satelital (terreno)">
+          {/* Google Satellite (mejor calidad y cobertura en Peru, sin API key publica) */}
+          <LayersControl.BaseLayer name="Satelital HD (Google)">
             <TileLayer
-              attribution='Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={19}
+              attribution='Imagery &copy; Google'
+              url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}"
+              maxZoom={20}
             />
           </LayersControl.BaseLayer>
 
-          {/* Topografico (muestra relieve y curvas de nivel - util para zonas mineras) */}
+          {/* Google Hybrid - satelital con nombres de calles */}
+          <LayersControl.BaseLayer name="Hibrido HD (Google)">
+            <TileLayer
+              attribution='Imagery &copy; Google'
+              url="https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              maxZoom={20}
+            />
+          </LayersControl.BaseLayer>
+
+          {/* Topografico (muestra relieve y curvas de nivel) */}
           <LayersControl.BaseLayer name="Relieve / Topografico">
             <TileLayer
-              attribution='Tiles &copy; Esri &mdash; Source: USGS, Esri, NASA'
-              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
-              maxZoom={19}
+              attribution='Tiles &copy; OpenTopoMap'
+              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+              subdomains={['a', 'b', 'c']}
+              maxNativeZoom={17}
+              maxZoom={20}
             />
           </LayersControl.BaseLayer>
 
