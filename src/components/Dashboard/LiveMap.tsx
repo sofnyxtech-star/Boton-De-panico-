@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl } from 'react-leaflet'
 import L from 'leaflet'
 import { useAgents } from '@/hooks/useAgents'
 import { useRealtimeAlerts } from '@/hooks/useRealtimeAlerts'
@@ -126,11 +126,50 @@ export function LiveMap({ selectedAlertId, onAgentClick }: LiveMapProps) {
         className="h-full w-full"
         style={{ background: '#1a1a2e' }}
       >
-        {/* Dark Map Tiles */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-        />
+        <LayersControl position="topright">
+          {/* Satelite hibrido (recomendado para mineria - ve cerros + nombres) */}
+          <LayersControl.BaseLayer checked name="Satelite + Calles">
+            <>
+              <TileLayer
+                attribution='Tiles &copy; Esri'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+              <TileLayer
+                attribution='Boundaries &copy; Esri'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={19}
+              />
+            </>
+          </LayersControl.BaseLayer>
+
+          {/* Solo satelital (vista pura del terreno) */}
+          <LayersControl.BaseLayer name="Satelital (terreno)">
+            <TileLayer
+              attribution='Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={19}
+            />
+          </LayersControl.BaseLayer>
+
+          {/* Topografico (muestra relieve y curvas de nivel - util para zonas mineras) */}
+          <LayersControl.BaseLayer name="Relieve / Topografico">
+            <TileLayer
+              attribution='Tiles &copy; Esri &mdash; Source: USGS, Esri, NASA'
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
+              maxZoom={19}
+            />
+          </LayersControl.BaseLayer>
+
+          {/* Mapa oscuro (modo original) */}
+          <LayersControl.BaseLayer name="Mapa Oscuro">
+            <TileLayer
+              attribution='&copy; OpenStreetMap &copy; CARTO'
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              maxZoom={20}
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
 
         {/* Fly to selected alert */}
         {flyTo && <FlyToLocation lat={flyTo.lat} lng={flyTo.lng} ts={flyTo.ts} />}
